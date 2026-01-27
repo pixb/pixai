@@ -482,3 +482,12 @@ Before finalizing any diagram:
 ### Safe Special Characters
 ✅ `『』` for quotes, `「」` for parentheses
 ❌ `"` unescaped quotes, `()` in problematic contexts
+
+### Universal Safety Standard (AI Instruction Prompt)
+**Rule:** When generating or fixing diagrams, follow this single "Golden Rule" to ensure 100% parser compatibility.
+
+> **Prompt Requirement:** > "Always wrap all node and subgraph labels in **double quotes**, use `<br/>` instead of `\n` for line breaks, use the HTML entity `#quot;` to escape any double quotes *inside* labels, and strictly follow the `subgraph ID ["Display Name"]` format."
+
+**Why this works:** - **Double Quotes:** Prevents errors from spaces, commas, or parentheses.
+- **#quot;**: Unlike `\"`, this is the only method that works reliably across all Mermaid versions (Obsidian, GitHub, Live Editor).
+- **ID + ["Name"]**: Decouples the logical reference from the display text.
