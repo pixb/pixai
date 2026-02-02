@@ -483,11 +483,94 @@ Before finalizing any diagram:
 ✅ `『』` for quotes, `「」` for parentheses
 ❌ `"` unescaped quotes, `()` in problematic contexts
 
-### Universal Safety Standard (AI Instruction Prompt)
-**Rule:** When generating or fixing diagrams, follow this single "Golden Rule" to ensure 100% parser compatibility.
+---
 
-> **Prompt Requirement:** > "Always wrap all node and subgraph labels in **double quotes**, use `<br/>` instead of `\n` for line breaks, use the HTML entity `#quot;` to escape any double quotes *inside* labels, and strictly follow the `subgraph ID ["Display Name"]` format."
+## Bracket and Brace Character Escaping (Critical)
 
-**Why this works:** - **Double Quotes:** Prevents errors from spaces, commas, or parentheses.
-- **#quot;**: Unlike `\"`, this is the only method that works reliably across all Mermaid versions (Obsidian, GitHub, Live Editor).
-- **ID + ["Name"]**: Decouples the logical reference from the display text.
+### The Double Bracket `[[` Problem
+
+**Problem:** The `[[` sequence is reserved syntax for hyperlinks in Mermaid.
+
+**Error Message:** `Parse error: Expecting 'SUBROUTINEEND', 'TAGEND', 'UNICODE_TEXT', 'TEXT', 'TAGSTART', got 'SQE'`
+
+**When it occurs:**
+- Node text contains `[[` (e.g., Vim mapping `[[: jump to previous class`)
+- Node text starts with `[` followed by special characters
+- Attempting to document keyboard shortcuts like `[[`, `]]`, `[]`, `[(`
+
+**Solutions:**
+
+```mermaid
+❌ C --> C2[[: jump to class]          # [[ triggers link syntax
+❌ C --> C2[[some text]]               # [[ ]] is link syntax
+
+✅ C --> C2["[[: jump to class"]       # Wrap in double quotes
+✅ C --> C2["[[some text"]             # Wrap in double quotes
+✅ C --> C2["Shortcut: [["]]           # Quotes escape special chars
+```
+
+### Complete Special Character Reference
+
+| Character | Issue | Solution |
+|-----------|-------|----------|
+| `[[` | Link syntax | Wrap in quotes: `["[[ text"]` |
+| `[]` | Empty brackets | Wrap in quotes: `["[] text"]` |
+| `[` at start | Node delimiter | Wrap in quotes or escape |
+| `]` inside | Closing delimiter | Wrap entire text in quotes |
+| `((` | Circle node start | Use quotes: `["(( text"]` |
+| `))` | Circle node end | Use quotes for non-circle nodes |
+| `{{` | Hexagon start | Use quotes: `["{{ text"]` |
+| `}}` | Hexagon end | Use quotes for non-hexagon nodes |
+| `\|` | Table delimiter | Escape or use quotes |
+| `"` | Quote delimiter | Replace with 『』or use single quotes |
+
+### Real-World Examples
+
+**Keyboard Shortcuts Documentation:**
+```mermaid
+❌ Node1[[]m - next function]           # [[] triggers circle node syntax
+❌ Node2[[: - previous class]           # [[ triggers link syntax  
+
+✅ Node1["[]m - next function"]         # Quotes protect brackets
+✅ Node2["[[: - previous class"]        # Quotes protect [[
+✅ Node3["[( - jump to start"]          # Safe with quotes
+```
+
+**Code Snippets in Nodes:**
+```mermaid
+❌ Node[arr[0] = value]                  # [0] confuses parser
+❌ Node[obj[["key"]]]                    # [[ triggers link
+
+✅ Node["arr[0] = value"]                # Quotes protect brackets
+✅ Node["obj[[\"key\"]]"]                # Escape inner quotes too
+```
+
+**General Rule:**
+> When in doubt, wrap node text containing any brackets (`[]`, `[[`, `((`, `{{`, `))`, `}}`) in double quotes.
+
+### Quote Escaping Strategy
+
+If your text needs to contain actual double quotes:
+
+```mermaid
+# Option 1: Use single quotes for outer wrapper
+A['Contains "quotes" inside']
+
+# Option 2: Replace quotes with Unicode alternatives
+B[Contains 『quotes』 inside]
+
+# Option 3: Use escaped quotes (less reliable)
+C["Contains \"quotes\" inside"]
+```
+
+### Quick Decision Tree
+
+```
+Does your node text contain?
+├── [[ or ]] → MUST use quotes: ["[[ text"]
+├── (( or )) → Consider quotes if not circle node
+├── {{ or }} → Consider quotes if not hexagon node  
+├── [] or () → Use quotes if at start or confusing
+├── " quotes → Replace with 『』or use single quotes wrapper
+└── Multiple special chars → ALWAYS use quotes
+```

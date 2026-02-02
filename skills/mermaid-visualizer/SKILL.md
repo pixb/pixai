@@ -127,7 +127,26 @@ When creating a Mermaid diagram:
 ✅ Line breaks in circle nodes only: ((Text<br/>Break))
 ```
 
-### Rule 5: Arrow Types
+### Rule 5: Bracket and Brace Characters (CRITICAL)
+```
+❌ WRONG: [[text]]           → [[ triggers hyperlink syntax
+❌ WRONG: [[]text]           → [[] triggers circle node syntax  
+❌ WRONG: [[: jump]          → [[ triggers hyperlink syntax
+
+✅ RIGHT: ["[[text"]         → Quotes prevent [[ interpretation
+✅ RIGHT: ["[[]text"]        → Quotes prevent [[] interpretation
+✅ RIGHT: ["[[: jump"]       → Quotes prevent [[ interpretation
+```
+
+**Always wrap node text containing brackets/braces in double quotes:**
+- `[[` - Hyperlink syntax
+- `((` - Circle node syntax (if not creating circle)
+- `{{` - Hexagon syntax (if not creating hexagon)
+- `[]` - Empty brackets
+- `[` at start followed by special chars
+- Any combination of multiple brackets/braces
+
+### Rule 6: Arrow Types
 - `-->` solid arrow
 - `-.->` dashed arrow (for supporting systems, optional paths)
 - `==>` thick arrow (for emphasis)
@@ -202,9 +221,10 @@ Response: [Analyze → Choose comparison layout → Generate with contrasting st
    - Use semantic naming (descriptive IDs)
    - Apply consistent styling
    - Test for common errors:
-     * No "number. space" patterns in node text
-     * All subgraphs use ID["display name"] format
-     * All node references use IDs not display names
+      * No "number. space" patterns in node text
+      * All subgraphs use ID["display name"] format
+      * All node references use IDs not display names
+      * No unquoted [[, ((, {{, [], or bracket combinations in node text
 
 5. **Output with context**
    - Wrap in ```mermaid code fence
@@ -263,6 +283,7 @@ Before outputting, verify:
 - [ ] No "number. space" patterns in any node text
 - [ ] All subgraphs use proper ID syntax
 - [ ] All arrows use correct syntax (-->, -.->)
+- [ ] No unquoted [[, ((, {{, [], or bracket/brace combinations in node text
 - [ ] Colors applied consistently
 - [ ] Layout direction specified
 - [ ] Style declarations present
