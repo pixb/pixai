@@ -25,7 +25,9 @@ def analyze_to_json(raw_string):
     # 调用本地部署的 gemma3:4b（4B参数模型）
     response = ollama.generate(
         # model='gemma3:4b',
-        model='qwen3:4b',
+        # model='qwen3:4b',
+        model='qwen3-vl:4b-instruct',
+        # model='qwen2:0.5b',
         prompt=prompt,
         options={
             'temperature': 0,  # 设为0以保证输出的稳定性
