@@ -26,8 +26,11 @@ def analyze_to_json(raw_string):
     response = ollama.generate(
         # model='gemma3:4b',
         # model='qwen3:4b',
-        model='qwen3-vl:4b-instruct',
+        # model='qwen3-vl:4b-instruct',
         # model='qwen2:0.5b',
+        # model='qwen3:8b',
+        # model='qwen3:8b',
+        model='llama3.2:3b',
         prompt=prompt,
         options={
             'temperature': 0,  # 设为0以保证输出的稳定性

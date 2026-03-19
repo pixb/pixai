@@ -23,9 +23,10 @@ cmake ../llama.cpp-src -DCMAKE_BUILD_TYPE=Release
 cmake --build . --config Release -j$(nproc)
 
 # 或编译 (AMD GPU / ROCm)
+# 注意：ROCm 7.2 + Arch Linux 上 HIP 编译有已知问题，见 amdgpurun.md
 mkdir -p build && cd build
-HIPCXX="$(hipconfig -l)/clang" HIP_PATH="$(hipconfig -R)" \
-cmake ../llama.cpp-src -DGGML_HIP=ON -DGPU_TARGETS=gfx900 -DCMAKE_BUILD_TYPE=Release
+HIPCXX=/opt/rocm/lib/llvm/bin/clang HIP_PATH=/opt/rocm \
+cmake ../llama.cpp-src -DGGML_HIP=ON -DGPU_TARGETS=gfx902 -DCMAKE_BUILD_TYPE=Release
 cmake --build . --config Release -j$(nproc)
 
 # 安装 (可选)
@@ -46,7 +47,7 @@ cd ../build && cmake --build . --config Release -j$(nproc)
 
 ## 环境
 
-- **GPU**: AMD Radeon Vega 集成显卡（无独立显存）
+- **GPU**: AMD Radeon Vega 8 Graphics (gfx902, 无独立显存)
 - **模式**: CPU 推理
 - **模型**: Qwen2.5-1.5B-Instruct (Q4_K_M 量化，约 1GB)
 
@@ -100,6 +101,10 @@ curl -L -o qwen2.5-1.5b-instruct-q4_k_m.gguf \
 
 > 注意: 7B 以上模型会被分成多个分片文件，需要分别下载并合并
 
+> [!INFO] amd核显运行
+> [amdgpurun](./amdgpurun.md)
+> 1.5b 12.6 tok/s
+
 ## 启动 API Server
 
 ### 启动 1.5B 模型
@@ -135,7 +140,7 @@ curl -L -o qwen2.5-1.5b-instruct-q4_k_m.gguf \
 | `--port` | 服务端口 | 8080 |
 | `--host` | 监听地址 | 0.0.0.0 |
 
-服务启动后访问: http://localhost:8080/docs 查看 API 文档
+服务启动后访问: <http://localhost:8080/docs> 查看 API 文档
 
 ## 测试
 
