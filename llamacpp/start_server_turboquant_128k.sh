@@ -5,6 +5,8 @@ SERVER="./llama-cpp-turboquant/build/bin/llama-server"
 MODEL="./models/Qwen3.6-27B-Q4_K_M.gguf"
 PORT=8080
 
+export LD_LIBRARY_PATH="$(dirname "$SERVER"):/opt/cuda/lib64:$LD_LIBRARY_PATH"
+
 CPU_THREADS=12
 GPU_LAYERS=99
 CONTEXT_SIZE=131072

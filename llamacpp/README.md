@@ -267,6 +267,25 @@ cmake -B build -DGGML_CUDA=ON -DCMAKE_BUILD_TYPE=Release
 cmake --build build -j$(nproc)
 ```
 
+> **注意**: 如果运行时遇到 `libcudart.so.12: cannot open shared object file` 错误，说明系统 CUDA
+> 运行时版本与编译时不一致。重新编译时需指定正确的 CUDA 工具链路径：
+> ```bash
+> cd llama-cpp-turboquant
+> cmake -B build \
+>   -DCUDAToolkit_ROOT=/opt/cuda \
+>   -DCMAKE_CUDA_COMPILER=/opt/cuda/bin/nvcc \
+>   -DGGML_CUDA=ON \
+>   -DCMAKE_BUILD_TYPE=Release \
+>   -DGGML_CUDA_FA=ON \
+>   -DGGML_CUDA_GRAPHS=ON
+> cmake --build build -j$(nproc)
+> ```
+>
+> 编译后需要在启动脚本的 `LD_LIBRARY_PATH` 中添加 CUDA 库路径，例如：
+> ```bash
+> export LD_LIBRARY_PATH="/opt/cuda/lib64:$LD_LIBRARY_PATH"
+> ```
+
 ### 启动服务
 
 ```bash
