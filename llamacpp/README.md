@@ -22,6 +22,11 @@ mkdir -p build && cd build
 cmake ../llama.cpp-src -DCMAKE_BUILD_TYPE=Release
 cmake --build . --config Release -j$(nproc)
 
+# 或编译 (NVIDIA GPU / CUDA)
+mkdir -p build && cd build
+cmake ../llama.cpp-src -DCMAKE_BUILD_TYPE=Release -DGGML_CUDA=ON
+cmake --build . --config Release -j$(nproc)
+
 # 或编译 (AMD GPU / ROCm)
 # 注意：ROCm 7.2 + Arch Linux 上 HIP 编译有已知问题，见 amdgpurun.md
 mkdir -p build && cd build
@@ -47,22 +52,31 @@ cd ../build && cmake --build . --config Release -j$(nproc)
 
 ## 环境
 
-- **GPU**: AMD Radeon Vega 8 Graphics (gfx902, 无独立显存)
-- **模式**: CPU 推理
-- **模型**: Qwen2.5-1.5B-Instruct (Q4_K_M 量化，约 1GB)
+- **GPU**: NVIDIA GeForce RTX 3090 (24GB) / AMD Radeon Vega 8 (备用)
+- **模式**: GPU 推理 (CUDA) / CPU 推理 (备用)
+- **模型**: Qwen2.5-1.5B-Instruct / Qwen3-27B-Instruct (Q4_K_M 量化)
 
 ## 目录结构
 
 ```
 llamacpp/
 ├── llama.cpp-src/     # llama.cpp 源码
-├── build/             # 编译产物
+├── llama-cpp-turboquant/  # TurboQuant fork (KV Cache 压缩)
+│   └── build/bin/llama-server  # TurboQuant 编译产物
+├── build/             # 标准版编译产物
 │   └── bin/
 │       └── llama-server  # API Server 可执行文件
 ├── models/            # 模型文件目录
+│   ├── qwen2.5-1.5b-instruct-q4_k_m.gguf   # 1.5B 模型 (~1.1GB)
+│   └── Qwen3.6-27B-Q4_K_M.gguf              # 27B 模型 (~10GB)
 ├── download_model.sh  # 下载模型脚本
-├── start_server.sh    # 启动服务脚本
+├── download_qwen3627b.sh # 下载 27B 模型脚本
+├── init.sh            # 一键初始化脚本
+├── start_server.sh    # 启动 1.5B 模型脚本
+├── start_server_qwen36.sh # 启动 27B 模型脚本 (Q8_0)
+├── start_server_turboquant.sh # 启动 27B 模型脚本 (TurboQuant)
 ├── test_server.sh     # 测试脚本
+├── speed_test.sh      # 速度测试脚本
 └── README.md
 ```
 
@@ -96,33 +110,61 @@ curl -L -o qwen2.5-1.5b-instruct-q4_k_m.gguf \
 
 | 模型 | 仓库 | 文件名 | 大小 | 速度参考 |
 |------|------|--------|------|----------|
-| Qwen2.5-1.5B | Qwen/Qwen2.5-1.5B-Instruct-GGUF | qwen2.5-1.5b-instruct-q4_k_m.gguf | 1.1GB | ~19 tok/s |
-| Qwen2.5-3B | Qwen/Qwen2.5-3B-Instruct-GGUF | qwen2.5-3b-instruct-q4_k_m.gguf | 2.0GB | ~11 tok/s |
+| Qwen2.5-1.5B | Qwen/Qwen2.5-1.5B-Instruct-GGUF | qwen2.5-1.5b-instruct-q4_k_m.gguf | 1.1GB | CPU: ~19 tok/s |
+| Qwen3-27B | Qwen/Qwen3-30B-Instruct-GGUF | Qwen3.6-27B-Q4_K_M.gguf | 16GB | GPU: ~100 tok/s |
 
 > 注意: 7B 以上模型会被分成多个分片文件，需要分别下载并合并
 
-> [!INFO] amd核显运行
-> [amdgpurun](./amdgpurun.md)
-> 1.5b 12.6 tok/s
+> [!INFO] GPU 加速
+> 使用 NVIDIA RTX 3090 + CUDA 加速
+> - 1.5B 模型: ~100 tok/s
+> - 27B 模型: ~100 tok/s
+> - Context: 最大 81920
+> - 优化: Flash Attention, KV Cache Q8, mlock
+
+## 快速启动
+
+```bash
+# 一键初始化环境（克隆源码、下载模型、编译）
+./init.sh
+
+# 启动服务
+./start_server.sh
+```
+
+> 模型下载约 1GB，编译需要 2-5 分钟
 
 ## 启动 API Server
 
-### 启动 1.5B 模型
+### 启动 1.5B 模型 (GPU/CUDA)
 
 ```bash
 ./build/bin/llama-server \
   -m ./models/qwen2.5-1.5b-instruct-q4_k_m.gguf \
-  -c 2048 -n 512 -t 4 \
+  -c 2048 -n 512 -t 16 \
   --host 0.0.0.0 --port 8080 \
   --log-disable &
 ```
 
-### 启动 3B 模型
+### 启动 27B 模型 (GPU/CUDA)
+
+```bash
+./start_server_qwen36.sh
+```
+
+或手动启动：
 
 ```bash
 ./build/bin/llama-server \
-  -m ./models/qwen2.5-3b-instruct-q4_k_m.gguf \
-  -c 2048 -n 512 -t 4 \
+  -m ./models/Qwen3.6-27B-Q4_K_M.gguf \
+  -c 81920 -n 512 -t 4 \
+  -ngl 99 \
+  --parallel 1 \
+  --cache-type-k q8_0 \
+  --cache-type-v q8_0 \
+  --flash-attn \
+  --mlock \
+  --reasoning-budget 0 \
   --host 0.0.0.0 --port 8080 \
   --log-disable &
 ```
@@ -145,16 +187,11 @@ curl -L -o qwen2.5-1.5b-instruct-q4_k_m.gguf \
 ## 测试
 
 ```bash
-# 非代理请求 (如果系统有代理)
-curl --noproxy '*' http://localhost:8080/v1/chat/completions \
-  -H "Content-Type: application/json" \
-  -d '{
-    "messages": [{"role": "user", "content": "Hello!"}],
-    "max_tokens": 100
-  }'
-
-# 或使用项目脚本
+# 服务状态测试
 ./test_server.sh
+
+# 模型速度测试
+./speed_test.sh
 ```
 
 ## API 使用
@@ -216,6 +253,66 @@ response = client.chat.completions.create(
 print(response.choices[0].message.content)
 ```
 
+## TurboQuant KV Cache 压缩
+
+TurboQuant 是一个实验性功能，可显著压缩 KV Cache 内存占用，支持更长的上下文。
+
+### 克隆与编译
+
+```bash
+cd llama-cpp-turboquant
+cmake -B build -DGGML_CUDA=ON -DCMAKE_BUILD_TYPE=Release
+cmake --build build -j$(nproc)
+```
+
+### 启动服务
+
+```bash
+./start_server_turboquant.sh
+```
+
+或手动启动：
+
+```bash
+./llama-cpp-turboquant/build/bin/llama-server \
+  -m ./models/Qwen3.6-27B-Q4_K_M.gguf \
+  -c 81920 \
+  -n 512 \
+  -t 4 \
+  -ngl 99 \
+  --parallel 1 \
+  --cache-type-k turbo3 \
+  --cache-type-v turbo3 \
+  --flash-attn on \
+  --mlock \
+  --reasoning-budget 0 \
+  --host 0.0.0.0 \
+  --port 8080 \
+  --log-disable
+```
+
+### 压缩级别
+
+| 格式 | 压缩比 | 精度 |
+|------|--------|------|
+| turbo4 | ~3.8x | 最高 |
+| turbo3 | ~4.9x | 适中（推荐） |
+| turbo2 | ~6.6x | 实验性 |
+
+### 配置建议
+
+- 入门选择 `turbo3`，平衡压缩率和质量
+- 精度优先场景使用 `turbo4`
+- RTX 3090 24GB 使用 turbo3 可支持约 700K 上下文
+
+### 与标准版对比
+
+| 特性 | 标准版 (Q8_0) | TurboQuant (turbo3) |
+|------|--------------|---------------------|
+| 压缩比 | ~2x | ~4.9x |
+| 上下文支持 | ~128K | ~700K |
+| 精度 | 高 | 适中 |
+
 ## 常用命令
 
 ```bash
@@ -223,10 +320,10 @@ print(response.choices[0].message.content)
 pkill -f llama-server
 
 # 查看帮助
-./build/bin/llama-server --help
+./llama-cpp-turboquant/build/bin/llama-server --help
 
 # 指定 GPU (如果有 NVIDIA GPU)
-# ./build/bin/llama-server -mg 0 ...
+./build/bin/llama-server -mg 0 ...
 
 # 查看后台进程输出
 tail -f nohup.out
