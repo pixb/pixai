@@ -1,56 +1,64 @@
 #!/bin/bash
-# 长上下文测试脚本
+# 上下文窗口测试脚本
 
 HOST="${1:-localhost}"
 PORT="${2:-8080}"
 MODEL="${3:-Qwen3.6-27B-Q4_K_M.gguf}"
 
-test_context() {
-    local tokens=$1
-    local content=$(printf 'word%.0s ' $(seq 1 $tokens) | head -c 50000)
-
-    echo "Testing context length: ~$tokens tokens"
-    echo "---"
-
-    start_time=$(date +%s.%N)
-
-    response=$(curl --noproxy '*' -s -w "\n%{http_code}" http://${HOST}:${PORT}/v1/chat/completions \
-        -H "Content-Type: application/json" \
-        -d "{
-            \"model\": \"${MODEL}\",
-            \"messages\": [{\"role\": \"user\", \"content\": \"Count the words in the following text and just say the number:\n${content}\"}],
-            \"max_tokens\": 10,
-            \"temperature\": 0.1
-        }" 2>/dev/null)
-
-    http_code=$(echo "$response" | tail -n1)
-    body=$(echo "$response" | head -n-1)
-
-    end_time=$(date +%s.%N)
-    duration=$(echo "$end_time - $start_time" | bc)
-
-    if [ "$http_code" = "200" ]; then
-        content_length=$(echo "$body" | grep -o '"total_tokens":[0-9]*' | cut -d: -f2)
-        echo "Status: OK | Tokens: $content_length | Time: ${duration}s"
-    else
-        echo "Status: FAILED (HTTP $http_code)"
-        echo "$body" | head -c 200
-    fi
-    echo ""
-}
-
 echo "=============================================="
-echo "       Long Context Test (TurboQuant)"
+echo "       TurboQuant Context Window Test"
 echo "=============================================="
 echo "Server: http://${HOST}:${PORT}"
 echo ""
 
-test_context 1000
-test_context 5000
-test_context 10000
-test_context 50000
-test_context 100000
-test_context 200000
+test_ctx() {
+    local tokens=$1
+    local fill_word="${2:-x}"
+    local name="${3:-Test}"
 
-echo "=============================================="
-echo "Test completed"
+    echo -n "Testing ${name} (${tokens} tokens)... "
+
+    # Generate content
+    content=$(python3 -c "print(' ${fill_word}'.join(['']*${tokens}))" 2>/dev/null)
+    prompt="${content} CODE123 is secret. What is CODE123?"
+
+    # Save to temp file
+    echo "{\"messages\": [{\"role\": \"user\", \"content\": \"${prompt}\"}], \"max_tokens\": 15}" > /tmp/ctx_test.json
+
+    start=$(date +%s.%N)
+
+    response=$(curl --noproxy '*' -s -w "\nHTTP:%{http_code}" \
+        "http://${HOST}:${PORT}/v1/chat/completions" \
+        -H "Content-Type: application/json" \
+        -d '@/tmp/ctx_test.json' 2>/dev/null)
+
+    http_code=$(echo "$response" | grep "HTTP:" | cut -d: -f2)
+    body=$(echo "$response" | grep -v "HTTP:")
+
+    end=$(date +%s.%N)
+    duration=$(echo "$end - $start" | bc)
+
+    if [ "$http_code" = "200" ]; then
+        content=$(echo "$body" | grep -o '"content":"[^"]*"' | head -1 | cut -d'"' -f4)
+        tokens=$(echo "$body" | grep -o '"total_tokens":[0-9]*' | cut -d: -f2)
+        echo "✅ OK | Tokens: ${tokens} | Time: ${duration}s"
+    elif [ "$http_code" = "400" ]; then
+        echo "❌ Too many tokens"
+    else
+        echo "⚠️ HTTP $http_code"
+    fi
+}
+
+echo "--- Context Tests ---"
+test_ctx 1000 "word" "Short"
+test_ctx 10000 "word" "Medium"
+test_ctx 50000 "the" "Large"
+test_ctx 100000 "a" "Very Large"
+test_ctx 120000 "x" "Near 128K"
+
+echo ""
+echo "--- Memory Check ---"
+nvidia-smi --query-gpu=memory.used,memory.total --format=csv,noheader 2>/dev/null || echo "nvidia-smi not available"
+
+echo ""
+echo "Test completed!"

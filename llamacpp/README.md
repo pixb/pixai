@@ -74,9 +74,11 @@ llamacpp/
 ├── init.sh            # 一键初始化脚本
 ├── start_server.sh    # 启动 1.5B 模型脚本
 ├── start_server_qwen36.sh # 启动 27B 模型脚本 (Q8_0)
-├── start_server_turboquant.sh # 启动 27B 模型脚本 (TurboQuant)
+├── start_server_turboquant.sh # 启动 27B 模型脚本 (TurboQuant 128K)
+├── start_server_turboquant_128k.sh # 128K 上下文版本
 ├── test_server.sh     # 测试脚本
 ├── speed_test.sh      # 速度测试脚本
+├── test_context.sh    # 上下文窗口测试脚本
 └── README.md
 ```
 
@@ -276,20 +278,31 @@ cmake --build build -j$(nproc)
 ```bash
 ./llama-cpp-turboquant/build/bin/llama-server \
   -m ./models/Qwen3.6-27B-Q4_K_M.gguf \
-  -c 81920 \
+  -c 131072 \
   -n 512 \
-  -t 4 \
+  -t 12 \
   -ngl 99 \
   --parallel 1 \
   --cache-type-k turbo3 \
   --cache-type-v turbo3 \
   --flash-attn on \
   --mlock \
+  --batch-size 512 \
+  --ubatch-size 512 \
   --reasoning-budget 0 \
   --host 0.0.0.0 \
   --port 8080 \
   --log-disable
 ```
+
+### 参数说明
+
+| 参数 | 值 | 说明 |
+|------|-----|------|
+| `-c` | 131072 | 128K 上下文窗口 |
+| `-t` | 12 | CPU 线程数（匹配 12 核 Xeon） |
+| `--batch-size` | 512 | 预填充批处理大小 |
+| `--cache-type-k/v` | turbo3 | KV Cache 压缩格式 |
 
 ### 压缩级别
 
@@ -299,11 +312,31 @@ cmake --build build -j$(nproc)
 | turbo3 | ~4.9x | 适中（推荐） |
 | turbo2 | ~6.6x | 实验性 |
 
-### 配置建议
+### RTX 3090 显存与上下文测试结果
 
-- 入门选择 `turbo3`，平衡压缩率和质量
-- 精度优先场景使用 `turbo4`
-- RTX 3090 24GB 使用 turbo3 可支持约 700K 上下文
+| 上下文窗口 | 实际可用 | 显存占用 | 状态 |
+|-----------|---------|---------|------|
+| 82K | 80K | 20.1 GB | ✅ 推荐 |
+| 128K | 126K | 21.5 GB | ✅ 推荐 |
+| 200K | 195K | 23.3 GB | ⚠️ 极限 |
+
+> 显存上限 24GB，建议保持 2GB 余量避免 OOM
+
+### 测试命令
+
+```bash
+# 上下文窗口测试
+./test_context.sh
+
+# 指定主机端口测试
+./test_context.sh 192.168.1.11 8080
+```
+
+### 上下文使用建议
+
+- 128K 是 RTX 3090 + 27B 模型的甜蜜点
+- 靠前信息会被 TurboQuant 压缩丢失，重要内容放在末尾
+- 长文档分析时将关键问题放在最后
 
 ### 与标准版对比
 
