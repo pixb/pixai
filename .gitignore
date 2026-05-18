@@ -1,3 +1,12 @@
 .DS_Store
 .venv
 .winvenv
+
+# llama.cpp
+llamacpp/build/
+llamacpp/llama.cpp-src/
+llamacpp/models/*.gguf
+llamacpp/models/.cache/
+llamacpp/nohup.out
+llamacpp/*.log
+llamacpp/ggml-vocab-*.gguf

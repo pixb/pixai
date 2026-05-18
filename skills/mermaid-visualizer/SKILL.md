@@ -138,6 +138,49 @@ When creating a Mermaid diagram:
 ✅ RIGHT: ["[[: jump"]       → Quotes prevent [[ interpretation
 ```
 
+### Rule 6: Curly Brace Characters { }
+```
+❌ WRONG: [花括号 {}]        → {} triggers subgraph or custom syntax
+❌ WRONG: [test{}]           → Braces at end cause parse error
+❌ WRONG: A[var] --> B[{var}] → Lone braces in node text
+
+✅ RIGHT: ["花括号 {}"]      → Wrap in double quotes
+✅ RIGHT: ["test{}"]        → Always quote braces
+✅ RIGHT: A[var] --> B[value] → Use descriptive text, not literal braces
+```
+
+### Rule 7: Special Symbols in Node Text
+```
+❌ WRONG: [A & B]            → Ampersand may cause issues
+❌ WRONG: [A | B]            → Pipe in node text
+❌ WRONG: [A > B]            → Greater than in comparison
+
+✅ RIGHT: ["A & B"]          → Quote special symbols
+✅ RIGHT: ["A | B"]          → Quote pipe characters
+✅ RIGHT: ["A > B"]          → Quote comparison operators
+```
+
+### Rule 8: Mindmap Syntax (CRITICAL)
+```
+❌ WRONG: root((Bash 语法))          → Space causes lexical error
+❌ WRONG:   {} 花括号                 → Braces at line start
+❌ WRONG:   $变量                     → Dollar sign without quotes
+
+✅ RIGHT: root(("Bash语法"))         → Double parens for root
+✅ RIGHT:   ["{}花括号"]              → Square brackets for nodes
+✅ RIGHT:   ["$美元符号"]            → Quote special chars
+```
+
+### Rule 9: State Diagram Syntax
+```
+❌ WRONG: 初始: 初始化 {}         → Text after state name causes issues
+❌ WRONG: 运行["运行中 []"]        → Brackets in state label
+❌ WRONG: 错误["错误 >"]           → Comparison operators in label
+
+✅ RIGHT: 初始 --> 运行             → Simple transitions
+✅ RIGHT: note right of 运行: "运行中"  → Use notes for descriptions
+```
+
 **Always wrap node text containing brackets/braces in double quotes:**
 - `[[` - Hyperlink syntax
 - `((` - Circle node syntax (if not creating circle)
