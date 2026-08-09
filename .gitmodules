@@ -1,0 +1,3 @@
+[submodule "skills/agent-skill-creator"]
+	path = skills/agent-skill-creator
+	url = git@github.com:FrancyJGLisboa/agent-skill-creator.git
