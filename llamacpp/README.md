@@ -380,3 +380,43 @@ pkill -f llama-server
 # 查看后台进程输出
 tail -f nohup.out
 ```
+
+## Qwen3.8-27B (TurboQuant MTP + 视觉)
+
+> **MTP 版的 GGUF（含 `blk.64.nextn.*` 头）无法被旧版 b9082 build 加载**，必须使用
+> `llama-cpp-turboquant-mtp/`（最新 fork，支持 `--spec-type draft-mtp`）。
+
+### 启动
+
+```bash
+./start_server_qwen38_27b.sh
+```
+
+特性:
+- 模型: `models/Qwen3.8-27B-Q3_K_M.gguf` (自带 MTP 头)
+- 视觉: `models/mmproj-BF16.gguf` (`--mmproj`)
+- MTP 投机解码: `--spec-type draft-mtp --spec-draft-n-max 3 --spec-draft-p-min 0.75`
+- KV 缓存: turbo3 (TurboQuant)
+- 实测 (RTX 3090): MTP draft 接受率 ~70-76%, 视觉推理正常
+
+### 旧版 turboquant 与 MTP 版共存
+
+| 目录 | 版本 | 用途 |
+|------|------|------|
+| `llama-cpp-turboquant/` | b9082 (5/9) | **Qwen3.6 + turbo3**，`start_server_turboquant_128k.sh` |
+| `llama-cpp-turboquant-mtp/` | fca3093 (8/13) | **Qwen3.8 + MTP + 视觉**，`start_server_qwen38_27b.sh` |
+
+两个 build 互不干扰，`LD_LIBRARY_PATH` 分别指向各自的 `build/bin`。
+
+### 备份与回退
+
+> 升级期间的备份 `backups/2026-08-16/` 已完成使命并删除（原目录 `llama-cpp-turboquant/`
+> 事后从未被修改，与新 build 隔离在独立目录，旧目录本身就是"备份"）。
+
+```bash
+# 回退到旧版 Qwen3.6：直接跑旧 build 即可
+./start_server_turboquant_128k.sh
+```
+
+> 注意: `pkill` 使用 `pkill -f llama-server` 会匹配到命令自身导致卡住，
+> 建议用 `pkill -f '[l]lama-server'`。
