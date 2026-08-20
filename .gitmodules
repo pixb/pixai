@@ -1,3 +1,6 @@
 [submodule "skills/agent-skill-creator"]
 	path = skills/agent-skill-creator
 	url = git@github.com:FrancyJGLisboa/agent-skill-creator.git
+[submodule "llamacpp/Qwen-Fixed-Chat-Templates"]
+	path = llamacpp/Qwen-Fixed-Chat-Templates
+	url = https://huggingface.co/froggeric/Qwen-Fixed-Chat-Templates

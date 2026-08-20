@@ -20,6 +20,9 @@ echo "Starting Qwen3.8-27B (TurboQuant MTP) with 128K context..."
 ${SERVER} \
   -m "${MODEL}" \
   --mmproj "${MMPROJ}" \
+  --chat-template-file ./Qwen-Fixed-Chat-Templates/chat_template.jinja \
+  --reasoning-format deepseek \
+  --reasoning-preserve \
   -c ${CONTEXT_SIZE} \
   -n -1 \
   -t ${CPU_THREADS} \
@@ -31,7 +34,7 @@ ${SERVER} \
   --load-mode mlock \
   --batch-size ${BATCH_SIZE} \
   --ubatch-size 512 \
-  --reasoning-budget 0 \
+  --reasoning-budget -1 \
   --spec-type draft-mtp \
   --spec-draft-n-max 3 \
   --spec-draft-p-min 0.75 \
