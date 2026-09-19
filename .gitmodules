@@ -13,3 +13,6 @@
 [submodule "skills/go-project-convertions-skill"]
 	path = skills/go-project-convertions-skill
 	url = git@github.com:pixb/go-project-conventions-skill.git
+[submodule "skills/go-project-main-skill"]
+	path = skills/go-project-main-skill
+	url = git@github.com:pixb/go-project-main-skill.git
