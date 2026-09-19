@@ -28,3 +28,6 @@
 [submodule "skills/go-project-server-skill"]
 	path = skills/go-project-server-skill
 	url = git@github.com:pixb/go-project-server-skill.git
+[submodule "skills/go-project-store-skill"]
+	path = skills/go-project-store-skill
+	url = git@github.com:pixb/go-project-store-skill.git
