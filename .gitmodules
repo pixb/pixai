@@ -10,3 +10,6 @@
 [submodule "skills/excalidraw-diagram-skill"]
 	path = skills/excalidraw-diagram-skill
 	url = git@github.com:pixb/excalidraw-diagram-skill.git
+[submodule "skills/go-project-convertions-skill"]
+	path = skills/go-project-convertions-skill
+	url = git@github.com:pixb/go-project-conventions-skill.git
