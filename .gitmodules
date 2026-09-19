@@ -16,3 +16,6 @@
 [submodule "skills/go-project-main-skill"]
 	path = skills/go-project-main-skill
 	url = git@github.com:pixb/go-project-main-skill.git
+[submodule "skills/go-project-overview-skill"]
+	path = skills/go-project-overview-skill
+	url = git@github.com:pixb/go-project-overview-skill.git
