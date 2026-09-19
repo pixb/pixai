@@ -4,3 +4,6 @@
 [submodule "llamacpp/Qwen-Fixed-Chat-Templates"]
 	path = llamacpp/Qwen-Fixed-Chat-Templates
 	url = https://huggingface.co/froggeric/Qwen-Fixed-Chat-Templates
+[submodule "skills/pixtang-image-upload-skill"]
+	path = skills/pixtang-image-upload-skill
+	url = ssh://git@192.168.1.3:2222/pix/pixtang-image-upload-skill.git
