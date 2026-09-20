@@ -55,3 +55,6 @@
 [submodule "skills/pix-cognitive-tutor-skill"]
 	path = skills/pix-cognitive-tutor-skill
 	url = git@github.com:pixb/pix-cognitive-tutor-skill.git
+[submodule "skills/pix-develop-docs-skill"]
+	path = skills/pix-develop-docs-skill
+	url = git@github.com:pixb/pix-develop-docs-skill.git
