@@ -31,3 +31,6 @@
 [submodule "skills/go-project-store-skill"]
 	path = skills/go-project-store-skill
 	url = git@github.com:pixb/go-project-store-skill.git
+[submodule "skills/json-canvas-skill"]
+	path = skills/json-canvas-skill
+	url = git@github.com:pixb/json-canvas-skill.git
