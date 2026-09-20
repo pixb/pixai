@@ -40,3 +40,6 @@
 [submodule "skills/mermaid-visualizer-skill"]
 	path = skills/mermaid-visualizer-skill
 	url = git@github.com:pixb/mermaid-visualizer-skill.git
+[submodule "skills/obsidian-bases-skill"]
+	path = skills/obsidian-bases-skill
+	url = git@github.com:pixb/obsidian-bases-skill.git
