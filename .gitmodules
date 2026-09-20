@@ -61,3 +61,6 @@
 [submodule "skills/pix-image-generator-skill"]
 	path = skills/pix-image-generator-skill
 	url = git@github.com:pixb/pix-image-generator-skill.git
+[submodule "skills/pix-question-answer-skill"]
+	path = skills/pix-question-answer-skill
+	url = git@github.com:pixb/pix-question-answer-skill.git
