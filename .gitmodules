@@ -52,3 +52,6 @@
 [submodule "skills/pix-audio-index-tts-skill"]
 	path = skills/pix-audio-index-tts-skill
 	url = git@github.com:pixb/pix-audio-index-tts-skill.git
+[submodule "skills/pix-cognitive-tutor-skill"]
+	path = skills/pix-cognitive-tutor-skill
+	url = git@github.com:pixb/pix-cognitive-tutor-skill.git
