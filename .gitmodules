@@ -58,3 +58,6 @@
 [submodule "skills/pix-develop-docs-skill"]
 	path = skills/pix-develop-docs-skill
 	url = git@github.com:pixb/pix-develop-docs-skill.git
+[submodule "skills/pix-image-generator-skill"]
+	path = skills/pix-image-generator-skill
+	url = git@github.com:pixb/pix-image-generator-skill.git
