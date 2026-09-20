@@ -49,3 +49,6 @@
 [submodule "skills/obsidian-markdown-skill"]
 	path = skills/obsidian-markdown-skill
 	url = git@github.com:pixb/obsidian-markdown-skill.git
+[submodule "skills/pix-audio-index-tts-skill"]
+	path = skills/pix-audio-index-tts-skill
+	url = git@github.com:pixb/pix-audio-index-tts-skill.git
