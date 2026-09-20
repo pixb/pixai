@@ -34,3 +34,6 @@
 [submodule "skills/json-canvas-skill"]
 	path = skills/json-canvas-skill
 	url = git@github.com:pixb/json-canvas-skill.git
+[submodule "skills/mcp-builder-skill"]
+	path = skills/mcp-builder-skill
+	url = git@github.com:pixb/mcp-builder-skill.git
