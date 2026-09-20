@@ -46,3 +46,6 @@
 [submodule "skills/obsidian-canvas-creator-skill"]
 	path = skills/obsidian-canvas-creator-skill
 	url = git@github.com:pixb/obsidian-canvas-creator-skill.git
+[submodule "skills/obsidian-markdown-skill"]
+	path = skills/obsidian-markdown-skill
+	url = git@github.com:pixb/obsidian-markdown-skill.git
